@@ -1,0 +1,49 @@
+         <root>
+            <name>GLPI AI CHAT</name>
+            <key>glpiaichat</key>
+            <state>stable</state> <!-- stable | unstable | beta | alpha -->
+            <logo>http://link/to/logo/with/dimensions/40px/40px</logo>
+            <description>
+               <short>
+                  <en>AI chatbot designed to assist users with level 1 IT requests</en>
+                  <fr>Chatbot IA conçu pour aider les utilisateurs avec des demandes informatiques de niveau 1</fr>
+               </short>
+               <long>
+                  <en>A licensed GLPI plugin that integrates an AI-based chatbot designed to assist users in handling Level 1 IT requests. The plugin is based on a system of customisable prompts, defined according to each company's specific requirements and expected behaviour, in addition to integrated default behaviour.</en>
+                  <fr>Un plugin GLPI sous licence permettant d’intégrer une bulle de discussion basée sur une intelligence artificielle, destinée à assister les utilisateurs dans le traitement des demandes informatiques de niveau 1. Le plugin repose sur un système de prompts personnalisables, définis selon les spécificités de chaque entreprise et le comportement attendu, en complément d’un comportement par défaut intégré</fr>
+               </long>
+            </description>
+            <homepage>https://github.com/jessy-chaila/glpiaichat</homepage>
+            <download>https://github.com/jessy-chaila/glpiaichat</download>
+            <issues>https://github.com/jessy-chaila/glpiaichat/issues</issues>
+            <readme>https://github.com/jessy-chaila/glpiaichat</readme>
+            <authors>
+               <author>Jessy Chaila</author>
+            </authors>
+            <versions>
+               <version>
+                  <num>1.0</num>
+                  <compatibility>~11.0.4</compatibility>
+                  <download_url>https://github.com/jessy-chaila/glpiaichat</download_url>
+               </version>
+            </versions>
+            <langs>
+               <lang>fr_FR</lang>
+            </langs>
+            <license>GPL v2+</license>
+            <tags>
+               <en>
+                  <tag>Chatbot</tag>
+                  <tag>AI</tag>
+                  <tag>Helpdesk</tag>
+               </en>
+               <fr>
+                  <tag>Bulle de conversasion</tag>
+                  <tag>IA</tag>
+                  <tag>Support utilisateurs</tag>
+               </fr>
+            </tags>
+            <screenshots>
+               <screenshot>http://link/to/your/screenshot</screenshot>
+            </screenshots>
+         </root>
