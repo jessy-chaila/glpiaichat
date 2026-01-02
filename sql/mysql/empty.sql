@@ -1,0 +1,2 @@
+-- No SQL schema required for this plugin.
+-- All configuration is stored via Config::setConfigurationValues('glpiaichat', ...).

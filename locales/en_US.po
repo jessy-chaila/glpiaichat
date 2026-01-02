@@ -1,0 +1,397 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: GLPI AI Chat 1.0\n"
+"POT-Creation-Date: 2026-01-02 21:30+0100\n"
+"PO-Revision-Date: 2026-01-02 21:35+0100\n"
+"Last-Translator: COREFORGE\n"
+"Language-Team: English\n"
+"Language: en_US\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 3.0\n"
+
+msgid "Erreur lors de l’activation de la licence."
+msgstr "Error while activating the license."
+
+msgid "Le champ « Modèle IA (ID) » est obligatoire."
+msgstr "The 'AI Model (ID)' field is required."
+
+msgid "Le champ « Clé API IA » est obligatoire."
+msgstr "The 'AI API Key' field is required."
+
+msgid "Le champ « URL API IA » est obligatoire."
+msgstr "The 'AI API URL' field is required."
+
+msgid "Configuration du chatbot IA"
+msgstr "AI Chatbot Configuration"
+
+msgid "Licence valable jusqu’au "
+msgstr "License valid until "
+
+msgid "Plugin activé (mode complet). Paramétrage de la connexion à l’IA et du comportement de l’assistant."
+msgstr "Plugin activated (full mode). Configuring AI connection and assistant behavior."
+
+msgid "Plugin en mode dégradé (sans licence) : configuration limitée, 5 messages gratuits max."
+msgstr "Plugin in degraded mode (no license): limited configuration, 5 free messages max."
+
+msgid "Licence"
+msgstr "License"
+
+msgid "État de la licence"
+msgstr "License status"
+
+msgid "Licence active."
+msgstr "License active."
+
+msgid "Mode dégradé :"
+msgstr "Degraded mode:"
+
+msgid "licence non activée."
+msgstr "license not activated."
+
+msgid "Chat limité à 5 messages par session utilisateur."
+msgstr "Chat limited to 5 messages per user session."
+
+msgid "Création de tickets et options avancées réservées à la version licenciée."
+msgstr "Ticket creation and advanced options reserved for the licensed version."
+
+msgid "Activer la licence"
+msgstr "Activate license"
+
+msgid "Connexion à l’IA"
+msgstr "AI Connection"
+
+msgid "Fournisseur IA"
+msgstr "AI Provider"
+
+msgid "bientôt disponible"
+msgstr "soon available"
+
+msgid "En mode dégradé, le fournisseur est imposé sur Claude (Anthropic)."
+msgstr "In degraded mode, the provider is forced to Claude (Anthropic)."
+
+msgid "Sélectionnez un fournisseur parmi ceux disponible dans la liste."
+msgstr "Select a provider from the list."
+
+msgid "Modèle IA (ID)"
+msgstr "AI Model (ID)"
+
+msgid "Modèles recommandés OpenAI : <code>gpt-4o</code>, <code>gpt-4o-mini</code>. Les modèles compatibles avec l’API OpenAI (Groq, etc.) sont également utilisables."
+msgstr "Recommended OpenAI models: <code>gpt-4o</code>, <code>gpt-4o-mini</code>. OpenAI API compatible models (Groq, etc.) can also be used."
+
+msgid "Modèles Grok (xAI) disponibles : <code>grok-2-1212</code>, <code>grok-beta</code> (ou le dernier en date). Les modèles compatibles avec l’API OpenAI (OpenAI, Groq, etc.) sont également utilisables."
+msgstr "Available Grok (xAI) models: <code>grok-2-1212</code>, <code>grok-beta</code> (or latest). OpenAI API compatible models (OpenAI, Groq, etc.) can also be used."
+
+msgid "Exemples : <code>claude-3-5-sonnet-20241022</code>, <code>claude-3-opus-20240229</code>, <code>claude-3-haiku-20240307</code>."
+msgstr "Examples: <code>claude-3-5-sonnet-20241022</code>, <code>claude-3-opus-20240229</code>, <code>claude-3-haiku-20240307</code>."
+
+msgid "Exemples de modèles Gemini : <code>gemini-2.0-flash</code>, <code>gemini-1.5-flash</code>, <code>gemini-1.5-pro</code>."
+msgstr "Gemini model examples: <code>gemini-2.0-flash</code>, <code>gemini-1.5-flash</code>, <code>gemini-1.5-pro</code>."
+
+msgid "Exemples de modèles Mistral : <code>mistral-small-latest</code>, <code>mistral-large-latest</code>, <code>open-mistral-7b</code>."
+msgstr "Mistral model examples: <code>mistral-small-latest</code>, <code>mistral-large-latest</code>, <code>open-mistral-7b</code>."
+
+msgid "Renseignez l’ID exact du modèle selon la documentation de votre fournisseur."
+msgstr "Enter the exact model ID according to your provider's documentation."
+
+msgid "URL API IA"
+msgstr "AI API URL"
+
+msgid "En mode dégradé, l’utilisation est limitée à l’API Anthropic (Claude)."
+msgstr "In degraded mode, usage is limited to the Anthropic (Claude) API."
+
+msgid "URL par défaut pour %s : <code>%s</code>."
+msgstr "Default URL for %s: <code>%s</code>."
+
+msgid "URL par défaut pour Mistral (Mistral AI) : <code>%s</code>."
+msgstr "Default URL for Mistral (Mistral AI): <code>%s</code>."
+
+msgid "URL par défaut pour Gemini (Google) : <code>%s</code><br>Adaptez-la selon le modèle et la version de l’API utilisés, en suivant la documentation Gemini."
+msgstr "Default URL for Gemini (Google): <code>%s</code><br>Adjust it according to the model and API version used, following Gemini documentation."
+
+msgid "URL de l’API du fournisseur IA (par défaut : <code>%s</code> pour Claude)."
+msgstr "AI provider API URL (default: <code>%s</code> for Claude)."
+
+msgid "Clé API IA"
+msgstr "AI API Key"
+
+msgid "Clé API du fournisseur sélectionné (OpenAI, Groq, Claude, Swiftask, Mistral, etc.)."
+msgstr "API Key for the selected provider (OpenAI, Groq, Claude, Swiftask, Mistral, etc.)."
+
+msgid "Saisissez une clé API valide pour Claude afin de tester le chatbot en mode dégradé (5 messages gratuits)."
+msgstr "Enter a valid API key for Claude to test the chatbot in degraded mode (5 free messages)."
+
+msgid "Comportement de l’assistant"
+msgstr "Assistant behavior"
+
+msgid "Numéro de téléphone du support"
+msgstr "Support phone number"
+
+msgid "Ce numéro sera proposé à l’utilisateur pour les cas urgents (bouton « Appeler le support »)."
+msgstr "This number will be offered to the user for urgent cases ('Call Support' button)."
+
+msgid "Champ réservé à la version licenciée. En mode dégradé, ce numéro n’est pas utilisé."
+msgstr "Field reserved for the licensed version. In degraded mode, this number is not used."
+
+msgid "Prompt système"
+msgstr "System prompt"
+
+msgid "Contexte métier, règles de niveau 1, exemples de cas à traiter ou à escalader…"
+msgstr "Business context, level 1 rules, examples of cases to handle or escalate..."
+
+msgid "Modification du prompt système réservée à la version licenciée."
+msgstr "Modifying the system prompt is reserved for the licensed version."
+
+msgid "Pour modifier le comportement de Swiftask, utilisez les instructions de l’agent directement dans Swiftask. Le prompt système GLPI n’est pas utilisé pour ce fournisseur."
+msgstr "To change Swiftask behavior, use agent instructions directly in Swiftask. The GLPI system prompt is not used for this provider."
+
+msgid "Permet d’ajuster les règles métier (procédures internes, cas particuliers, vocabulaire, etc.)."
+msgstr "Allows adjusting business rules (internal procedures, special cases, vocabulary, etc.)."
+
+msgid "Personnalisation de l’interface"
+msgstr "Interface customization"
+
+msgid "Type d’icône du bot"
+msgstr "Bot icon type"
+
+msgid "Texte / emoji"
+msgstr "Text / emoji"
+
+msgid "Image (upload)"
+msgstr "Image (upload)"
+
+msgid "Choisissez si l’icône de la bulle du bot est un texte/emoji ou une image importée."
+msgstr "Choose if the bot bubble icon is a text/emoji or an imported image."
+
+msgid "Personnalisation de l’icône réservée à la version licenciée. En mode dégradé, l’icône par défaut est utilisée."
+msgstr "Icon customization reserved for the licensed version. In degraded mode, the default icon is used."
+
+msgid "Texte / emoji de l’icône"
+msgstr "Icon text / emoji"
+
+msgid "Exemples : <code>%s</code>, <code>%s</code>, <code>%s</code>. Utilisé lorsque le type d’icône est « Texte / emoji »."
+msgstr "Examples: <code>%s</code>, <code>%s</code>, <code>%s</code>. Used when the icon type is 'Text / emoji'."
+
+msgid "Personnalisation de l’icône réservée à la version licenciée."
+msgstr "Icon customization reserved for the licensed version."
+
+msgid "Image d’icône (upload)"
+msgstr "Icon image (upload)"
+
+msgid "Icône actuelle :"
+msgstr "Current icon:"
+
+msgid "Icône actuelle"
+msgstr "Current icon"
+
+msgid "Importez une image (PNG, JPG, GIF, WEBP, SVG) utilisée comme icône lorsque le type est « Image (upload) »."
+msgstr "Import an image (PNG, JPG, GIF, WEBP, SVG) used as an icon when the type is 'Image (upload)'."
+
+msgid "Couleur principale du bot"
+msgstr "Main bot color"
+
+msgid "Utiliser la couleur du thème GLPI (par défaut)"
+msgstr "Use GLPI theme color (default)"
+
+msgid "Décochez l’option ci-dessus pour définir une couleur personnalisée pour la bulle, les messages utilisateur et les boutons."
+msgstr "Uncheck the option above to define a custom color for the bubble, user messages, and buttons."
+
+msgid "Personnalisation de la couleur réservée à la version licenciée. En mode dégradé, la couleur du thème GLPI est utilisée."
+msgstr "Color customization reserved for the licensed version. In degraded mode, the GLPI theme color is used."
+
+msgctxt "button"
+msgid "Save"
+msgstr "Save"
+
+msgid "Enregistrer (mode dégradé)"
+msgstr "Save (degraded mode)"
+
+msgid "Activation du plugin Chatbot IA"
+msgstr "AI Chatbot Plugin Activation"
+
+msgid "Ce plugin nécessite une clé de licence valide pour débloquer toutes les fonctionnalités. Veuillez saisir la clé fournie lors de l'achat."
+msgstr "This plugin requires a valid license key to unlock all features. Please enter the key provided at purchase."
+
+msgid "Clé de licence"
+msgstr "License key"
+
+msgid "Saisissez la clé de licence reçue lors de l’achat ou du renouvellement de votre abonnement."
+msgstr "Enter the license key received during purchase or renewal of your subscription."
+
+msgid "Sans clé valide, le plugin reste inactif en mode dégradé."
+msgstr "Without a valid key, the plugin remains inactive in degraded mode."
+
+msgid "En cas de perte, contactez le support éditeur."
+msgstr "In case of loss, contact the publisher support."
+
+msgid "Annuler"
+msgstr "Cancel"
+
+msgid "Configuration sauvegardée"
+msgstr "Configuration saved"
+
+msgid "Les paramètres du chatbot IA ont été mis à jour."
+msgstr "The AI chatbot settings have been updated."
+
+msgid "Renseignez l’ID du modèle configuré dans Swiftask, ou laissez-le selon la documentation Swiftask."
+msgstr "Enter the model ID configured in Swiftask, or leave it according to Swiftask documentation."
+
+msgid "URL par défaut pour OpenAI : <code>%s</code>."
+msgstr "Default URL for OpenAI: <code>%s</code>."
+
+msgid "URL par défaut pour Grok (xAI) : <code>%s</code>."
+msgstr "Default URL for Grok (xAI): <code>%s</code>."
+
+msgid "URL par défaut pour Gemini (Google) : <code>%s</code><br>Par exemple pour <code>gemini-2.0-flash</code> : <code>%s</code>."
+msgstr "Default URL for Gemini (Google): <code>%s</code><br>For example for <code>gemini-2.0-flash</code>: <code>%s</code>."
+
+msgid "URL de l’API Swiftask fournie par votre instance."
+msgstr "Swiftask API URL provided by your instance."
+
+msgid "URL de l’API du fournisseur IA (consultez la documentation de votre fournisseur)."
+msgstr "AI provider API URL (check your provider's documentation)."
+
+msgid "Merci de préciser votre question."
+msgstr "Please specify your question."
+
+msgid "Je n’ai pas pu générer de réponse."
+msgstr "I could not generate a response."
+
+msgid "Le service d’assistance automatique n’est pas configuré (URL, clé API ou modèle IA manquant). Veuillez contacter votre administrateur."
+msgstr "The automatic support service is not configured (URL, API key or AI model missing). Please contact your administrator."
+
+msgid "Erreur de communication avec le moteur IA (Claude)."
+msgstr "Communication error with AI engine (Claude)."
+
+msgid "Réponse IA invalide (format non JSON) pour Claude."
+msgstr "Invalid AI response (non-JSON format) for Claude."
+
+msgid "Erreur lors de l’appel au moteur IA (Claude)."
+msgstr "Error while calling the AI engine (Claude)."
+
+msgid "Erreur de communication avec le moteur IA (%s)."
+msgstr "Communication error with the AI engine (%s)."
+
+msgid "Réponse IA invalide (format non JSON) pour %s."
+msgstr "Invalid AI response (non-JSON format) for %s."
+
+msgid "Erreur lors de l’appel au moteur IA (%s)."
+msgstr "Error while calling the AI engine (%s)."
+
+msgid "Erreur renvoyée par l’API distante."
+msgstr "Error returned by the remote API."
+
+msgid "Erreur renvoyée par l’API %s : %s"
+msgstr "Error returned by the %s API: %s"
+
+msgid "Le fournisseur d’IA sélectionné (%s) n’est pas reconnu par cette version du plugin."
+msgstr "The selected AI provider (%s) is not recognized by this version of the plugin."
+
+msgid "Le moteur IA (%s) n’a renvoyé aucun contenu."
+msgstr "The AI engine (%s) returned no content."
+
+msgid "Demande via chatbot IA"
+msgstr "Request via AI Chatbot"
+
+msgid "Conversation utilisateur (via chatbot IA) :"
+msgstr "User conversation (via AI chatbot):"
+
+msgid "Message %d de l'utilisateur :"
+msgstr "User message %d:"
+
+msgid "Aucune licence trouvée (fichier ou configuration)."
+msgstr "No license found (file or configuration)."
+
+msgid "Erreur de vérification :"
+msgstr "Verification error:"
+
+msgid "Clé de licence vide."
+msgstr "Empty license key."
+
+msgid "Erreur lors de la vérification de la licence :"
+msgstr "Error during license verification:"
+
+msgid "Clé publique invalide (Base64)."
+msgstr "Invalid public key (Base64)."
+
+msgid "Extension sodium requise pour vérifier la licence."
+msgstr "Sodium extension required to verify license."
+
+msgid "Format de licence invalide (séparateur manquant)."
+msgstr "Invalid license format (missing separator)."
+
+msgid "Licence corrompue (Base64 invalide)."
+msgstr "Corrupted license (invalid Base64)."
+
+msgid "Signature de licence invalide."
+msgstr "Invalid license signature."
+
+msgid "Payload JSON invalide dans la licence."
+msgstr "Invalid JSON payload in the license."
+
+msgid "Cette licence ne correspond pas à ce plugin."
+msgstr "This license does not match this plugin."
+
+msgid "Champ glpi_uuid manquant dans la licence."
+msgstr "Missing glpi_uuid field in the license."
+
+msgid "Cette licence est liée à une autre instance GLPI."
+msgstr "This license is linked to another GLPI instance."
+
+msgid "Instance GLPI autorisée."
+msgstr "GLPI instance authorized."
+
+msgid "Champ expires_at manquant dans la licence."
+msgstr "Missing expires_at field in the license."
+
+msgid "Date d'expiration invalide dans la licence."
+msgstr "Invalid expiration date in the license."
+
+msgid "Licence expirée."
+msgstr "License expired."
+
+msgid "Valide jusqu'au"
+msgstr "Valid until"
+
+msgid "Champ domain manquant dans la licence."
+msgstr "Missing domain field in the license."
+
+msgid "Domaine non autorisé. Licence pour \"%s\", instance actuelle : \"%s\"."
+msgstr "Unauthorized domain. License for \"%s\", current instance: \"%s\"."
+
+msgid "Domaine autorisé :"
+msgstr "Authorized domain:"
+
+msgid "Domaine non vérifié (contexte CLI/CRON, HTTP_HOST vide)."
+msgstr "Domain not verified (CLI/CRON context, empty HTTP_HOST)."
+
+msgid "Claude (Anthropic)"
+msgstr "Claude (Anthropic)"
+
+msgid "Gemini (Google)"
+msgstr "Gemini (Google)"
+
+msgid "Mistral (Mistral AI)"
+msgstr "Mistral (Mistral AI)"
+
+msgid "ChatGPT (OpenAI)"
+msgstr "ChatGPT (OpenAI)"
+
+msgid "Swiftask IA"
+msgstr "Swiftask IA"
+
+msgid "Vous"
+msgstr "You"
+
+msgid "Le plugin Chatbot IA n'est pas activé (licence manquante ou invalide). La création de tickets via le chatbot est réservée à la version licenciée."
+msgstr "The AI Chatbot plugin is not activated (missing or invalid license). Ticket creation via chatbot is reserved for the licensed version."
+
+msgid "Vous avez atteint la limite de 5 messages en mode dégradé. Veuillez activer une licence pour continuer à utiliser le chatbot."
+msgstr "You have reached the 5 messages limit in degraded mode. Please activate a license to continue using the chatbot."
+
+msgid "GLPI AI Chat"
+msgstr "GLPI AI Chat"
+
+msgid "Ce plugin nécessite GLPI >= 11.0.0"
+msgstr "This plugin requires GLPI >= 11.0.0"

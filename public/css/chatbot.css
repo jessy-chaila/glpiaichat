@@ -1,7 +1,12 @@
+/**
+ * Plugin GLPI AI CHAT - File: public/css/chatbot.css
+ * Styling for the floating chat bubble and the main chatbot window.
+ */
+
 :root {
-  /* Couleur primaire prise sur le thème GLPI si dispo, sinon bleu par défaut */
+  /* Primary color from GLPI theme if available, fallback to default blue */
   --glpiaichat-primary: rgb(var(--tblr-primary-rgb, 37, 99, 235));
-  --glpiaichat-primary-dark: #1942a3; /* nuance plus sombre pour les hover */
+  --glpiaichat-primary-dark: #1942a3; /* Darker shade for hover states */
   --glpiaichat-bg: #ffffff;
   --glpiaichat-border: #e5e7eb;
   --glpiaichat-text: #111827;
@@ -12,7 +17,7 @@
   --glpiaichat-ia-text: #111827;
 }
 
-/* Bulle flottante */
+/* Floating bubble */
 #glpiaichat-bubble {
   position: fixed;
   right: 24px;
@@ -40,7 +45,7 @@
   background: var(--glpiaichat-primary-dark);
 }
 
-/* Fenêtre principale */
+/* Main window */
 #glpiaichat-window {
   position: fixed;
   right: 24px;
@@ -58,7 +63,7 @@
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
-/* Animation d’apparition */
+/* Appearance animation */
 #glpiaichat-window.glpiaichat-open {
   animation: glpiaichat-fade-in 0.18s ease-out;
 }
@@ -127,7 +132,7 @@
   color: #fff;
 }
 
-/* Zone messages */
+/* Messages area */
 .glpiaichat-messages {
   padding: 10px 12px;
   overflow-y: auto;
@@ -135,14 +140,14 @@
   background: #f9fafb;
 }
 
-/* Lignes de message (avatar + contenu) */
+/* Message rows (avatar + content) */
 .glpiaichat-message {
   display: flex;
   margin-bottom: 8px;
   align-items: flex-start;
 }
 
-/* Colonne avatar + label */
+/* Avatar + label column */
 .glpiaichat-avatar-wrapper {
   display: flex;
   flex-direction: column;
@@ -151,7 +156,7 @@
   color: var(--glpiaichat-muted);
 }
 
-/* Avatar rond dans le flux de messages */
+/* Round avatar in the message flow */
 .glpiaichat-avatar {
   width: 24px;
   height: 24px;
@@ -174,21 +179,21 @@
   color: #111827;
 }
 
-/* Colonne contenu (nom + bulle) */
+/* Content column (name + bubble) */
 .glpiaichat-content-wrapper {
   display: flex;
   flex-direction: column;
   max-width: 78%;
 }
 
-/* Nom au-dessus de la bulle */
+/* Name above the bubble */
 .glpiaichat-name {
   font-size: 10px;
   color: var(--glpiaichat-muted);
   margin-bottom: 2px;
 }
 
-/* Bulle de message */
+/* Message bubble */
 .glpiaichat-message-inner {
   border-radius: 14px;
   padding: 8px 10px;
@@ -198,7 +203,7 @@
   white-space: pre-wrap;
 }
 
-/* Positionnement IA (gauche) */
+/* IA Positioning (left) */
 .glpiaichat-message-ia {
   justify-content: flex-start;
 }
@@ -219,7 +224,7 @@
   border-bottom-left-radius: 4px;
 }
 
-/* Positionnement utilisateur (droite) */
+/* User Positioning (right) */
 .glpiaichat-message-user {
   justify-content: flex-end;
 }
@@ -240,7 +245,7 @@
   border-bottom-right-radius: 4px;
 }
 
-/* Boutons dans les réponses IA */
+/* Buttons in IA responses */
 .glpiaichat-message-ia .glpiaichat-actions {
   margin-top: 6px;
 }
@@ -275,7 +280,7 @@
   background: var(--glpiaichat-primary-dark);
 }
 
-/* Pied avec zone de saisie */
+/* Footer with input area */
 .glpiaichat-footer {
   border-top: 1px solid var(--glpiaichat-border);
   background: #f9fafb;
@@ -305,7 +310,7 @@
   box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.2);
 }
 
-/* Bouton d’envoi (rond) */
+/* Send button (round) */
 .glpiaichat-send {
   width: 34px;
   height: 34px;
@@ -335,7 +340,7 @@
   box-shadow: none;
 }
 
-/* Message "IA tape..." */
+/* "IA is typing..." message */
 .glpiaichat-typing {
   font-size: 11px;
   color: var(--glpiaichat-muted);

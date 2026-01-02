@@ -1,13 +1,25 @@
 <?php
 
+/**
+ * Plugin GLPI AI CHAT - File: chat.class.php
+ * Main business logic for handling chat messages, AI calls, and ticket creation.
+ */
+
 if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access this file directly");
 }
 
+require_once __DIR__ . '/providers/claudeprovider.class.php';
+require_once __DIR__ . '/providers/openaiprovider.class.php';
+require_once __DIR__ . '/providers/swiftaskprovider.class.php';
+require_once __DIR__ . '/providers/geminiprovider.class.php';
+require_once __DIR__ . '/providers/mistralprovider.class.php';
+
 class PluginGlpiaichatChat {
 
    /**
-    * Récupère la configuration du plugin (stockée via Config::setConfigurationValues)
+    * Retrieves the plugin configuration from the GLPI Config table.
+    * * @return array
     */
    private function getConfig(): array {
       return Config::getConfigurationValues('glpiaichat', [
@@ -15,18 +27,22 @@ class PluginGlpiaichatChat {
          'ai_api_url',
          'ai_api_key',
          'system_prompt',
+         'ai_provider',
+         'ai_model',
       ]);
    }
 
    /**
-    * Traite un message utilisateur et renvoie la structure attendue par le JS
+    * Processes a user message and returns the structure expected by the JS frontend.
+    * * @param string $message User input
+    * @return array
     */
    public function handleMessage(string $message): array {
       $config = $this->getConfig();
 
       if (trim($message) === '') {
          return [
-            'answer'        => 'Merci de préciser votre question.',
+            'answer'        => __('Merci de préciser votre question.', 'glpiaichat'),
             'needs_ticket'  => false,
             'suggest_call'  => false,
             'support_phone' => $config['support_phone'] ?? null,
@@ -34,18 +50,18 @@ class PluginGlpiaichatChat {
          ];
       }
 
-      // Récupérer l'historique de conversation (session PHP)
-      // Format : [ ['role'=>'user','content'=>'...'], ['role'=>'assistant','content'=>'...'], ... ]
+      // Conversation history stored in PHP session
+      // Format: [ ['role'=>'user','content'=>'...'], ['role'=>'assistant','content'=>'...'], ... ]
       $history = $_SESSION['plugin_glpiaichat_history'] ?? [];
 
-      // Appel IA avec le message courant + historique
+      // AI Call with current message + history
       $aiResponse   = $this->callAI($message, $config, $history);
-      $answer       = $aiResponse['answer']       ?? 'Je n’ai pas pu générer de réponse.';
+      $answer       = $aiResponse['answer']       ?? __('Je n’ai pas pu générer de réponse.', 'glpiaichat');
       $needs_ticket = (bool) ($aiResponse['needs_ticket'] ?? false);
       $suggest_call = (bool) ($aiResponse['suggest_call'] ?? false);
       $ticket_title = $aiResponse['ticket_title'] ?? null;
 
-      // Mettre à jour l'historique (on stocke uniquement le texte affiché à l'utilisateur)
+      // Update history (text displayed to the user)
       $history[] = [
          'role'    => 'user',
          'content' => $message,
@@ -55,7 +71,7 @@ class PluginGlpiaichatChat {
          'content' => $answer,
       ];
 
-      // On garde uniquement les 10 derniers messages (5 tours user/assistant) pour limiter la taille
+      // Keep only the last 10 messages (5 user/assistant turns)
       $_SESSION['plugin_glpiaichat_history'] = array_slice($history, -10);
 
       return [
@@ -68,44 +84,87 @@ class PluginGlpiaichatChat {
    }
 
    /**
-    * Appel au moteur IA (Claude Sonnet via API Anthropic)
+    * Calls the AI engine based on the current configuration.
     *
-    * On attend en retour un JSON strict avec :
+    * Expected return is a strict JSON:
     * {
-    *   "answer": "texte pour l'utilisateur",
-    *   "needs_ticket": true/false,
-    *   "suggest_call": true/false,
-    *   "ticket_title": "titre court pour le ticket ou \"\" si aucun ticket n'est nécessaire"
+    * "answer": "user text",
+    * "needs_ticket": true/false,
+    * "suggest_call": true/false,
+    * "ticket_title": "short title"
     * }
-    *
-    * $history : historique court de la conversation (user/assistant)
+    * * @param string $message Current message
+    * @param array  $config Plugin configuration
+    * @param array  $history Conversation history
+    * @return array
     */
    private function callAI(string $message, array $config, array $history = []): array {
-      $url = $config['ai_api_url'] ?? '';
-      $key = $config['ai_api_key'] ?? '';
+      $url      = $config['ai_api_url']   ?? '';
+      $key      = $config['ai_api_key']   ?? '';
+      $model    = trim((string)($config['ai_model']    ?? ''));
+      $provider = trim((string)($config['ai_provider'] ?? 'anthropic'));
 
-      if ($url === '' || $key === '') {
+      // Missing service configuration
+      if ($url === '' || $key === '' || $model === '') {
          return [
-            'answer'       => 'Le service d’assistance automatique n’est pas configuré.',
+            'answer'       => __('Le service d’assistance automatique n’est pas configuré (URL, clé API ou modèle IA manquant). Veuillez contacter votre administrateur.', 'glpiaichat'),
             'needs_ticket' => true,
             'suggest_call' => true,
             'ticket_title' => null,
          ];
       }
 
-      // Nom du modèle Claude Sonnet fourni par ton fournisseur
-      $model = 'claude-sonnet-4-5-20250929';
+      // Readable labels for error reporting
+      $providerLabels = [
+         'anthropic' => 'Claude (Anthropic)',
+         'openai'    => 'ChatGPT (OpenAI)',
+         'google'    => 'Gemini (Google)',
+         'swiftask'  => 'Swiftask IA',
+         'mistral'   => 'Mistral (Mistral AI)',
+      ];
+      $providerLabel = $providerLabels[$provider] ?? $provider;
 
-      // Prompt système de base + contexte configurable
+      // ------------------------------------------------------------------
+      // Common system prompt for all providers
+      // ------------------------------------------------------------------
       $baseSystemPrompt = <<<TXT
 Tu es un assistant de support informatique de niveau 1 intégré à GLPI.
-Tu réponds en français, de manière concise et claire.
 
-Tu as accès à l'historique de la conversation (messages précédents).
-Tu dois en tenir compte pour enchaîner logiquement : ne recommence pas par un message de bienvenue
-si la conversation est déjà en cours.
+TON RÔLE
+- Tu aides les utilisateurs finaux à diagnostiquer et résoudre des problèmes simples.
+- Tu peux aussi décider qu’un ticket doit être créé ou qu’un appel téléphonique est préférable.
 
-Ta sortie doit être STRICTEMENT du JSON, sans texte autour, avec le format suivant :
+LANGUE
+- Tu réponds uniquement en français, de manière claire, concise et professionnelle.
+
+CONTEXTE
+- Tu as accès à l'historique de la conversation (messages précédents).
+- Tu dois en tenir compte pour enchaîner logiquement : ne recommence pas par un message de bienvenue si la conversation est déjà en cours.
+
+PÉRIMÈTRE DU SUPPORT NIVEAU 1
+- Tu peux proposer uniquement des vérifications simples que tout utilisateur peut réaliser sans droits administrateur ni compétences techniques avancées.
+- Exemples d’actions AUTORISÉES :
+  - vérifier que l’application est bien lancée / fermée puis relancée ;
+  - vérifier les câbles / la connexion réseau de base (Wi-Fi activé, câble branché) ;
+  - vérifier les identifiants de connexion (login/mot de passe) ;
+  - vérifier l’espace disque libre dans l’interface graphique ;
+  - demander une capture d’écran ou une description exacte du message d’erreur ;
+  - proposer de redémarrer l’application ou l’ordinateur une fois.
+- Si le problème nécessite des actions plus avancées, tu NE DONNES PAS les détails techniques, tu expliques simplement que cela dépasse le niveau 1 et tu proposes la création d’un ticket.
+
+ACTIONS INTERDITES (NIVEAU 1)
+- Tu NE DOIS PAS proposer :
+  - l’édition de la base de registre ou de fichiers système ;
+  - le mode sans échec, les options de démarrage avancées, msconfig, services système ;
+  - l’analyse de journaux système ou de journaux applicatifs détaillés ;
+  - la réinstallation complète d’un logiciel ou du système d’exploitation ;
+  - la modification de règles de firewall, proxy, antivirus ou politique de sécurité ;
+  - toute action nécessitant des droits administrateur ou un accès serveur.
+- Si ce type d’action serait normalement nécessaire, tu le signales simplement (sans donner les procédures) et tu mets "needs_ticket" = true.
+
+FORMAT DE SORTIE (OBLIGATOIRE)
+- Tu DOIS répondre en JSON strict, SANS aucun autre texte avant ou après.
+- Le JSON doit respecter exactement cette structure :
 
 {
   "answer": "réponse texte pour l'utilisateur, en français",
@@ -114,35 +173,47 @@ Ta sortie doit être STRICTEMENT du JSON, sans texte autour, avec le format suiv
   "ticket_title": "titre court pour le ticket ou \"\" si aucun ticket n'est nécessaire"
 }
 
-Règles métier :
-- "answer" : explique la réponse de manière adaptée à un utilisateur final.
-- "needs_ticket" = true si :
-  - le problème semble complexe / nécessite une analyse approfondie, OU
-  - tu ne peux pas résoudre avec des instructions simples, OU
-  - il manque des informations importantes, OU
-  - cela touche des droits / accès / pannes globales.
-  Sinon "needs_ticket" = false.
-- "suggest_call" = true si :
-  - la situation est urgente (plus de production, panne totale, sécurité), OU
-  - l'utilisateur semble perdu malgré tes explications, OU
-  - tu estimes qu'un échange téléphonique serait plus efficace.
-  Sinon "suggest_call" = false.
+- N’ajoute AUCUN autre champ dans le JSON.
+- N’ajoute pas de balises de code (par exemple ```json ou ```).
+- Ne mets AUCUN commentaire dans le JSON.
+- Le JSON doit être valide et parseable.
 
-- "ticket_title" :
-  - Si "needs_ticket" = true, tu DOIS générer un titre COURT et CLAIR qui résume le problème,
-    par exemple :
-      - "Problème d'export PDF avec Alizée"
-      - "Blocage à l'ouverture de Outlook"
-      - "Impossible d'imprimer sur l'imprimante BOCCA"
-  - Le titre ne doit pas contenir de phrase entière, pas de "Bonjour", pas de tournure polie.
-  - Pas de numéro de ticket, pas de date, pas de mention du mot "ticket".
-  - Si "needs_ticket" = false, tu mets "ticket_title" = "" (chaîne vide).
+RÈGLES MÉTIER
 
-Ne mets AUCUN autre champ dans le JSON.
-Ne mets pas de ```json``` ni aucune autre balise de code.
-Renvoie UNIQUEMENT le JSON brut, sans aucun texte ou formatage autour.
-N'utilise pas de commentaires.
-Respecte strictement le JSON valide.
+1) Champ "answer"
+- Contient la réponse destinée à l’utilisateur final.
+- Explique clairement quoi faire, avec des étapes simples si nécessaire.
+- Reste factuel, sans promesses irréalistes.
+- Ne détaille PAS des procédures techniques avancées (logs, mode sans échec, réinstallation, etc.). Dans ces cas, oriente vers un ticket.
+
+2) Champ "needs_ticket"
+- Mets "needs_ticket" = true si au moins une des conditions suivantes est vraie :
+  - le problème semble complexe ou nécessite une analyse approfondie ;
+  - tu ne peux pas résoudre le problème avec des instructions simples de niveau 1 ;
+  - il manque des informations importantes pour traiter la demande ;
+  - cela touche des droits / accès / sécurité / pannes globales ou impacts forts.
+- Sinon, mets "needs_ticket" = false.
+
+3) Champ "suggest_call"
+- Mets "suggest_call" = true si :
+  - la situation est urgente (plus de production, panne totale, incident sécurité) ;
+  - l'utilisateur semble perdu malgré tes explications ;
+  - tu estimes qu’un échange téléphonique serait beaucoup plus efficace.
+- Sinon, mets "suggest_call" = false.
+
+4) Champ "ticket_title"
+- Si "needs_ticket" = true, tu DOIS générer un titre COURT ET CLAIR qui résume le problème, par exemple :
+  - "Problème d'export PDF avec Alizée"
+  - "Blocage à l'ouverture de Outlook"
+  - "Impossible d'imprimer sur l'imprimante BOCCA"
+- Le titre NE doit PAS :
+  - contenir de phrase complète (pas de "Bonjour", pas de formules de politesse) ;
+  - contenir de date, de numéro de ticket, ni le mot "ticket".
+- Si "needs_ticket" = false, mets "ticket_title" = "" (chaîne vide).
+
+RAPPEL IMPORTANT
+- Tu dois renvoyer UNIQUEMENT le JSON brut, sans texte, sans explication, sans mise en forme autour.
+- Ne renvoie pas plusieurs objets JSON : un seul objet, une seule fois.
 TXT;
 
       $systemPrompt = $baseSystemPrompt;
@@ -150,100 +221,250 @@ TXT;
          $systemPrompt .= "\n\nContexte supplémentaire fourni par le client :\n" . $config['system_prompt'];
       }
 
-      // Construire la liste des messages pour l'API Anthropic à partir de l'historique
-      $messages = [];
+      // ------------------------------------------------------------------
+      // History normalization: array of user/assistant turns
+      // ------------------------------------------------------------------
+      $conversation = [];
 
       foreach ($history as $turn) {
          if (!isset($turn['role'], $turn['content'])) {
             continue;
          }
-         $role = ($turn['role'] === 'assistant') ? 'assistant' : 'user';
-         $content = (string)$turn['content'];
-
-         if (trim($content) === '') {
+         $role    = ($turn['role'] === 'assistant') ? 'assistant' : 'user';
+         $content = trim((string)$turn['content']);
+         if ($content === '') {
             continue;
          }
-
-         $messages[] = [
+         $conversation[] = [
             'role'    => $role,
             'content' => $content,
          ];
       }
 
-      // Ajouter le message courant de l'utilisateur
-      $messages[] = [
+      // Add current user message
+      $conversation[] = [
          'role'    => 'user',
          'content' => $message,
       ];
 
-      $payload = [
-         'model'       => $model,
-         'max_tokens'  => 512,
-         'temperature' => 0.2,
-         'system'      => $systemPrompt,
-         'messages'    => $messages,
-      ];
+      // ------------------------------------------------------------------
+      // API call based on the selected provider
+      // ------------------------------------------------------------------
+      $assistantText = null;
 
-      $ch = curl_init($url);
-      curl_setopt_array($ch, [
-         CURLOPT_POST           => true,
-         CURLOPT_RETURNTRANSFER => true,
-         CURLOPT_HTTPHEADER     => [
-            'Content-Type: application/json',
-            'x-api-key: ' . $key,
-            'anthropic-version: 2023-06-01',
-         ],
-         CURLOPT_POSTFIELDS     => json_encode($payload),
-         CURLOPT_TIMEOUT        => 15,
-      ]);
+      switch ($provider) {
+         case 'anthropic': {
+            $claudeProvider = new PluginGlpiaichatClaudeProvider();
+            $resultProvider = $claudeProvider->call($systemPrompt, $conversation, $config);
 
-      $result = curl_exec($ch);
-      if ($result === false) {
-         curl_close($ch);
-         return [
-            'answer'       => 'Erreur de communication avec le moteur IA.',
-            'needs_ticket' => true,
-            'suggest_call' => true,
-            'ticket_title' => null,
-         ];
+            if (!empty($resultProvider['error'])) {
+               if ($resultProvider['error'] === 'communication') {
+                  return [
+                     'answer'        => __('Erreur de communication avec le moteur IA (Claude).', 'glpiaichat'),
+                     'needs_ticket' => true,
+                     'suggest_call' => true,
+                     'ticket_title' => null,
+                  ];
+               }
+
+               if ($resultProvider['error'] === 'format') {
+                  return [
+                     'answer'        => __('Réponse IA invalide (format non JSON) pour Claude.', 'glpiaichat'),
+                     'needs_ticket' => true,
+                     'suggest_call' => true,
+                     'ticket_title' => null,
+                  ];
+               }
+
+               return [
+                  'answer'        => __('Erreur lors de l’appel au moteur IA (Claude).', 'glpiaichat'),
+                  'needs_ticket' => true,
+                  'suggest_call' => true,
+                  'ticket_title' => null,
+               ];
+            }
+
+            $assistantText = $resultProvider['assistantText'] ?? null;
+            break;
+         }
+
+         case 'openai': {
+            $providerObj    = new PluginGlpiaichatOpenAIProvider();
+            $resultProvider = $providerObj->call($systemPrompt, $conversation, $config);
+
+            if (!empty($resultProvider['error'])) {
+               if ($resultProvider['error'] === 'communication') {
+                  return [
+                     'answer'        => sprintf(__('Erreur de communication avec le moteur IA (%s).', 'glpiaichat'), $providerLabel),
+                     'needs_ticket' => true,
+                     'suggest_call' => true,
+                     'ticket_title' => null,
+                  ];
+               }
+
+               if ($resultProvider['error'] === 'format') {
+                  return [
+                     'answer'        => sprintf(__('Réponse IA invalide (format non JSON) pour %s.', 'glpiaichat'), $providerLabel),
+                     'needs_ticket' => true,
+                     'suggest_call' => true,
+                     'ticket_title' => null,
+                  ];
+               }
+
+               return [
+                  'answer'        => sprintf(__('Erreur lors de l’appel au moteur IA (%s).', 'glpiaichat'), $providerLabel),
+                  'needs_ticket' => true,
+                  'suggest_call' => true,
+                  'ticket_title' => null,
+               ];
+            }
+
+            $assistantText = $resultProvider['assistantText'] ?? null;
+            break;
+         }
+
+         case 'mistral': {
+            $providerObj    = new PluginGlpiaichatMistralProvider();
+            $resultProvider = $providerObj->call($systemPrompt, $conversation, $config);
+
+            if (!empty($resultProvider['error'])) {
+               if ($resultProvider['error'] === 'communication') {
+                  return [
+                     'answer'        => sprintf(__('Erreur de communication avec le moteur IA (%s).', 'glpiaichat'), $providerLabel),
+                     'needs_ticket' => true,
+                     'suggest_call' => true,
+                     'ticket_title' => null,
+                  ];
+               }
+
+               if ($resultProvider['error'] === 'format') {
+                  return [
+                     'answer'        => sprintf(__('Réponse IA invalide (format non JSON) pour %s.', 'glpiaichat'), $providerLabel),
+                     'needs_ticket' => true,
+                     'suggest_call' => true,
+                     'ticket_title' => null,
+                  ];
+               }
+
+               return [
+                  'answer'        => sprintf(__('Erreur lors de l’appel au moteur IA (%s).', 'glpiaichat'), $providerLabel),
+                  'needs_ticket' => true,
+                  'suggest_call' => true,
+                  'ticket_title' => null,
+               ];
+            }
+
+            $assistantText = $resultProvider['assistantText'] ?? null;
+            break;
+         }
+
+         case 'swiftask': {
+            $providerObj    = new PluginGlpiaichatSwiftaskProvider();
+            $resultProvider = $providerObj->call($systemPrompt, $conversation, $config);
+
+            if (!empty($resultProvider['error'])) {
+               if ($resultProvider['error'] === 'communication') {
+                  return [
+                     'answer'        => sprintf(__('Erreur de communication avec le moteur IA (%s).', 'glpiaichat'), $providerLabel),
+                     'needs_ticket' => true,
+                     'suggest_call' => true,
+                     'ticket_title' => null,
+                  ];
+               }
+
+               if ($resultProvider['error'] === 'format') {
+                  return [
+                     'answer'        => sprintf(__('Réponse IA invalide (format non JSON) pour %s.', 'glpiaichat'), $providerLabel),
+                     'needs_ticket' => true,
+                     'suggest_call' => true,
+                     'ticket_title' => null,
+                  ];
+               }
+
+               return [
+                  'answer'        => sprintf(__('Erreur lors de l’appel au moteur IA (%s).', 'glpiaichat'), $providerLabel),
+                  'needs_ticket' => true,
+                  'suggest_call' => true,
+                  'ticket_title' => null,
+               ];
+            }
+
+            $assistantText = $resultProvider['assistantText'] ?? null;
+            break;
+         }
+
+         case 'google': {
+            $providerObj    = new PluginGlpiaichatGeminiProvider();
+            $resultProvider = $providerObj->call($systemPrompt, $conversation, $config);
+
+            if (!empty($resultProvider['error'])) {
+               if ($resultProvider['error'] === 'communication') {
+                  return [
+                     'answer'        => sprintf(__('Erreur de communication avec le moteur IA (%s).', 'glpiaichat'), $providerLabel),
+                     'needs_ticket' => true,
+                     'suggest_call' => true,
+                     'ticket_title' => null,
+                  ];
+               }
+
+               if ($resultProvider['error'] === 'format') {
+                  return [
+                     'answer'        => sprintf(__('Réponse IA invalide (format non JSON) pour %s.', 'glpiaichat'), $providerLabel),
+                     'needs_ticket' => true,
+                     'suggest_call' => true,
+                     'ticket_title' => null,
+                  ];
+               }
+
+               if ($resultProvider['error'] === 'api_error') {
+                  $apiMsg = trim((string)($resultProvider['assistantText'] ?? __('Erreur renvoyée par l’API distante.', 'glpiaichat')));
+                  return [
+                     'answer'        => sprintf(__('Erreur renvoyée par l’API %s : %s', 'glpiaichat'), $providerLabel, $apiMsg),
+                     'needs_ticket' => true,
+                     'suggest_call' => false,
+                     'ticket_title' => null,
+                  ];
+               }
+
+               return [
+                  'answer'        => sprintf(__('Erreur lors de l’appel au moteur IA (%s).', 'glpiaichat'), $providerLabel),
+                  'needs_ticket' => true,
+                  'suggest_call' => true,
+                  'ticket_title' => null,
+               ];
+            }
+
+            $assistantText = $resultProvider['assistantText'] ?? null;
+            break;
+         }
+
+         default:
+            return [
+               'answer'        => sprintf(__('Le fournisseur d’IA sélectionné (%s) n’est pas reconnu par cette version du plugin.', 'glpiaichat'), $providerLabel),
+               'needs_ticket' => false,
+               'suggest_call' => false,
+               'ticket_title' => null,
+            ];
       }
-      curl_close($ch);
 
-      $decoded = json_decode($result, true);
-      if (!is_array($decoded)) {
-         return [
-            'answer'       => 'Réponse IA invalide (format non JSON).',
-            'needs_ticket' => true,
-            'suggest_call' => true,
-            'ticket_title' => null,
-         ];
-      }
-
-      // Anthropic renvoie le contenu dans content[0].text
-      $assistantText = '';
-      if (isset($decoded['content'][0]['text'])) {
-         $assistantText = $decoded['content'][0]['text'];
-      } elseif (isset($decoded['content'][0]['type'])
-                && $decoded['content'][0]['type'] === 'text'
-                && isset($decoded['content'][0]['text'])) {
-         $assistantText = $decoded['content'][0]['text'];
-      }
-
-      $assistantText = trim($assistantText);
+      // ------------------------------------------------------------------
+      // Post-processing: interpretation of the business JSON
+      // ------------------------------------------------------------------
+      $assistantText = trim((string)$assistantText);
 
       if ($assistantText === '') {
          return [
-            'answer'       => 'Le moteur IA n’a renvoyé aucun contenu.',
+            'answer'        => sprintf(__('Le moteur IA (%s) n’a renvoyé aucun contenu.', 'glpiaichat'), $providerLabel),
             'needs_ticket' => true,
             'suggest_call' => true,
             'ticket_title' => null,
          ];
       }
 
-      // 1er essai : parse direct le texte renvoyé comme JSON
+      // Attempt 1: direct JSON parse
       $json = json_decode($assistantText, true);
 
-      // Si ça échoue, on tente de retirer d'éventuels ```json ... ```
+      // Attempt 2: strip possible markdown code blocks if parsing failed
       if (!is_array($json)) {
          if (preg_match('~```(?:json)?\s*(\{.*\})\s*```~s', $assistantText, $m)) {
             $clean = trim($m[1]);
@@ -256,13 +477,22 @@ TXT;
       }
 
       if (!is_array($json)) {
-         // Fallback si le modèle ne respecte vraiment pas le format :
-         // on affiche le texte brut et on force ticket + appel
+         // Specific fallback for Swiftask: display raw text even if not JSON
+         if ($provider === 'swiftask') {
+            return [
+               'answer'        => $assistantText,
+               'needs_ticket'  => false,
+               'suggest_call'  => false,
+               'ticket_title'  => null,
+            ];
+         }
+
+         // Generic fallback: show raw text and force ticket/call flags
          return [
-            'answer'       => $assistantText,
-            'needs_ticket' => true,
-            'suggest_call' => true,
-            'ticket_title' => null,
+            'answer'        => $assistantText,
+            'needs_ticket'  => true,
+            'suggest_call'  => true,
+            'ticket_title'  => null,
          ];
       }
 
@@ -275,37 +505,38 @@ TXT;
       }
 
       return [
-         'answer'       => $json['answer']       ?? $assistantText,
-         'needs_ticket' => (bool)($json['needs_ticket'] ?? false),
-         'suggest_call' => (bool)($json['suggest_call'] ?? false),
-         'ticket_title' => $title,
+         'answer'        => $json['answer']        ?? $assistantText,
+         'needs_ticket'  => (bool)($json['needs_ticket'] ?? false),
+         'suggest_call'  => (bool)($json['suggest_call'] ?? false),
+         'ticket_title'  => $title,
       ];
    }
 
    /**
-    * Crée un ticket GLPI à partir de la question/réponse du chatbot
+    * Creates a GLPI ticket based on the chatbot conversation history.
     *
-    * @param string      $question        Historique concaténé des messages utilisateur
-    * @param string      $answer          (ignoré ici, gardé pour compat)
-    * @param string|null $preferredTitle  Titre proposé par l'IA (ticket_title)
+    * @param string      $question      Concatenated user messages history
+    * @param string      $answer        (Not used, kept for compatibility)
+    * @param string|null $preferredTitle Title suggested by the AI (ticket_title)
+    * @return array
     */
    public function createTicketFromChat(string $question, string $answer, ?string $preferredTitle = null): array {
       $question       = trim($question);
       $preferredTitle = trim((string)$preferredTitle);
 
-      // Si l'IA a proposé un titre, on le privilégie
+      // Prioritize AI suggested title
       $title = '';
 
       if ($preferredTitle !== '') {
          $title = $preferredTitle;
 
-         // Tronquer pour éviter les titres énormes
+         // Truncate if necessary
          if (mb_strlen($title, 'UTF-8') > 120) {
             $title = mb_substr($title, 0, 117, 'UTF-8') . '...';
          }
 
       } else {
-         // Sinon, on retombe sur la logique basée sur les messages utilisateur
+         // Fallback title generation from user messages
          $rawLines = preg_split("/\r\n|\n|\r/u", $question);
          $lines = [];
 
@@ -317,27 +548,22 @@ TXT;
          }
 
          if (empty($lines)) {
-            $title = 'Demande via chatbot IA';
+            $title = __('Demande via chatbot IA', 'glpiaichat');
          } else {
-            // Déterminer la ligne qui servira de base au titre
             $titleLine = $lines[0];
 
-            // Essayer de sauter les salutations pour le titre ("bonjour", "salut", etc.)
+            // Skip short greetings
             foreach ($lines as $line) {
                $low = mb_strtolower($line, 'UTF-8');
-
-               // salutations courtes à ignorer comme titre
                $isGreeting = preg_match('/^(bonjour|bonsoir|salut|hello|coucou|bjr|bjs)\b/u', $low);
                if ($isGreeting && mb_strlen($low, 'UTF-8') <= 40) {
                   continue;
                }
-
-               // Sinon, on prend cette ligne comme base de titre
                $titleLine = $line;
                break;
             }
 
-            // Extraire la première phrase du titre (jusqu'à ., ? ou !)
+            // Extract first sentence as title
             $separators = "/(\.|\?|!)/u";
             $parts = preg_split($separators, $titleLine, 2, PREG_SPLIT_DELIM_CAPTURE);
             if (!empty($parts[0])) {
@@ -346,18 +572,17 @@ TXT;
                $title = trim($titleLine);
             }
 
-            // Tronquer pour éviter les titres énormes
             if (mb_strlen($title, 'UTF-8') > 120) {
                $title = mb_substr($title, 0, 117, 'UTF-8') . '...';
             }
 
             if ($title === '') {
-               $title = 'Demande via chatbot IA';
+               $title = __('Demande via chatbot IA', 'glpiaichat');
             }
          }
       }
 
-      // Construction du contenu avec tous les messages utilisateur numérotés
+      // Ticket content compilation
       $rawLines = preg_split("/\r\n|\n|\r/u", $question);
       $lines = [];
 
@@ -369,25 +594,25 @@ TXT;
       }
 
       if (empty($lines)) {
-         $content = "Conversation utilisateur (via chatbot IA) :\n\n" . $question;
+         $content = __('Conversation utilisateur (via chatbot IA) :', 'glpiaichat') . "\n\n" . $question;
       } else {
          $formattedLines = [];
          foreach ($lines as $idx => $line) {
             $num = $idx + 1;
-            $formattedLines[] = "Message {$num} de l'utilisateur :\n{$line}";
+            $formattedLines[] = sprintf(__("Message %d de l'utilisateur :", 'glpiaichat'), $num) . "\n{$line}";
          }
 
-         $content = "Conversation utilisateur (via chatbot IA) :\n\n" . implode("\n\n", $formattedLines);
+         $content = __('Conversation utilisateur (via chatbot IA) :', 'glpiaichat') . "\n\n" . implode("\n\n", $formattedLines);
       }
 
       $ticket = new Ticket();
 
       $input = [
-         'name'               => $title,
-         'content'            => $content,
+         'name'                => $title,
+         'content'             => $content,
          'users_id_recipient' => Session::getLoginUserID(),
-         'entities_id'        => $_SESSION['glpiactive_entity'] ?? 0,
-         'status'             => Ticket::INCOMING,
+         'entities_id'        => $_SESSION['glpiaactive_entity'] ?? 0,
+         'status'              => Ticket::INCOMING,
       ];
 
       if ($ticket_id = $ticket->add($input)) {
